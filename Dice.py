@@ -36,8 +36,8 @@ def roll_my_dice():
     if successes <= 0: #special botch case
         results.configure(text='Botch: '+ str(successes))
     else: #non-botch output
-        results.configure(text="Successes: "+successes)
-    diceOut.configure(text="Result: "+rawDice) #output dice log
+        results.configure(text="Successes: "+str(successes))
+    diceOut.configure(text="Result: "+str(rawDice)) #output dice log
 
 #create the comboboxes (dropdowns)
 options = ['0','1','2','3','4','5','6','7','8','9','10']

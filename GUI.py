@@ -118,7 +118,7 @@ def roll_my_dice():
         v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
         v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
         rolls = int(v1)+int(v2) #get values from combobox and cast to int summing for num dice
-    rolls = min(rolls,rolls+1-health_value) + int(modInputCount.get("1.0",END))
+    rolls = min(rolls,rolls+1-health_value) + int(modInputCount.get())
     dc = int(dc) #get values from combobox and cast to int
     successes = 0 #storage for number of successes
     rawDice = '' #storage for dice log
@@ -127,7 +127,7 @@ def roll_my_dice():
         rawDice = temp[1] #store dice log
         successes += temp[0]#store successes
     rawDice = rawDice[0:len(rawDice)-1]#remove trailing comma
-    successes += int(modInputValue.get("1.0",END))
+    successes += int(modInputValue.get())
     if successes <= 0: #special botch case
         results.configure(text='Botch: '+ str(successes))
     else: #non-botch output
@@ -139,16 +139,31 @@ def predict_my_dice():
     global health_value
     global mastery
     if typeBox.get() == "Initive":
-        rolls = attribute_values[0][1] + attribute_values[2][2] + int(modInputValue.get("1.0",END))
+        rolls = attribute_values[0][1] + attribute_values[2][2] + int(modInputCount.get())
     else:
         v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
         v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
         rolls = int(v1)+int(v2) #get values from combobox and cast to int summing for num dice
     rolls = min(rolls,rolls+1-health_value)
-    prediction = ((10-dc)*rolls)*.1 + int(modInputCount.get("1.0",END))
+    prediction = ((10-dc)*rolls)*.1 + int(modInputValue.get())
     if mastery.get() == 1:
         prediction += rolls*.1
     predictFeild.configure(text="Expected Successes: " + str(prediction))    
+def clear_values():
+    global mastery
+    global dc
+    global attribute_selected
+    global ability_selected
+    modInputValue.delete(0,END)
+    modInputCount.delete(0,END)
+    modInputValue.insert(INSERT,"0")
+    modInputCount.insert(INSERT,"0")
+    mastery.set(0)
+    dc = 0
+    dcComboBox.set(0)
+    typeBox.set("")
+    attribute_selected.set("-1,-1")
+    ability_selected.set("-1,-1")
 
 
 getAllFromFile()
@@ -228,13 +243,13 @@ healthComboBox.bind("<<ComboboxSelected>>", lambda event,i=i: update_value_healt
 healthComboBox.set(health_values_name[health_value])
 
 results = Label(root, text='Results')
-results.place(x=700*screen_x_scale,y=235*screen_y_scale)
+results.place(x=700*screen_x_scale,y=245*screen_y_scale)
 
 diceOut = Label(root, text='Raw Dice Here')
-diceOut.place(x=700*screen_x_scale,y=255*screen_y_scale)
+diceOut.place(x=700*screen_x_scale,y=265*screen_y_scale)
 
 diceCount = Label(root, text='Total Dice')
-diceCount.place(x=700*screen_x_scale,y=280*screen_y_scale)
+diceCount.place(x=700*screen_x_scale,y=290*screen_y_scale)
 
 dcLabel = Text(root,height=box_height,width=box_width)
 dcLabel.insert(INSERT,"Roll DC")
@@ -250,13 +265,14 @@ Checkbutton(root, text='mastery', variable=mastery, onvalue=1, offvalue=0).place
 rollButton=Button(root, height=1, width=6, text="Roll", command=lambda: roll_my_dice())
 rollButton.place(x=820*screen_x_scale,y=20*screen_y_scale)
 
+clearButton=Button(root, height=1, width=6, text="Clear", command=lambda: clear_values())
+clearButton.place(x=820*screen_x_scale,y=50*screen_y_scale)
+
 predictButton=Button(root, height=1, width=6, text="Prediction", command=lambda: predict_my_dice())
 predictButton.place(x=910*screen_x_scale,y=20*screen_y_scale)
 
 predictFeild = Label(root, text='Pridiction')
 predictFeild.place(x=700*screen_x_scale,y=310*screen_y_scale)
-
-#create the radiobuttons
 
 #allows the user to select between initive or using the DC and Radiobuttons
 typeLabel = Text(root,height=box_height,width=box_width*2+5)
@@ -266,20 +282,24 @@ typeLabel.place(x=700*screen_x_scale,y=110*screen_y_scale)
 typeBox = Combobox(root,state='readonly',values=["Initive","select relevent attributes"],height=box_height,width=5)
 typeBox.place(x=700*screen_x_scale,y=125*screen_y_scale)
 
+def only_numbers(char): # used for the validation of 
+    return char.isdigit()
+validation = root.register(only_numbers)
+
 modLabelCount = Text(root,height=box_height,width=box_width*2+12)
 modLabelCount.insert(INSERT,"Add any other dice count modifiers")
 modLabelCount.bindtags((str(text_stat_temp), str(root), "all"))
 modLabelCount.place(x=700*screen_x_scale,y=160*screen_y_scale)
-modInputCount = Text(root,height=box_height,width=box_width)
+modInputCount = Entry(root,width=5,validate="key", validatecommand=(validation, '%S'))
 modInputCount.insert(INSERT,"0")
 modInputCount.place(x=700*screen_x_scale,y=180*screen_y_scale)
 modLabelValue = Text(root,height=box_height,width=box_width*2+12)
 modLabelValue.insert(INSERT,"Add any number of additional successes")
 modLabelValue.bindtags((str(text_stat_temp), str(root), "all"))
-modLabelValue.place(x=700*screen_x_scale,y=200*screen_y_scale)
-modInputValue = Text(root,height=box_height,width=box_width)
+modLabelValue.place(x=700*screen_x_scale,y=205*screen_y_scale)
+modInputValue = Entry(root,width=5,validate="key", validatecommand=(validation, '%S'))
 modInputValue.insert(INSERT,"0")
-modInputValue.place(x=700*screen_x_scale,y=220*screen_y_scale)
+modInputValue.place(x=700*screen_x_scale,y=225*screen_y_scale)
 
 
 mainloop()

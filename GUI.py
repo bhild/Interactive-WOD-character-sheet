@@ -15,6 +15,8 @@ dc = 0
 mastery = IntVar()
 attribute_selected = StringVar()
 ability_selected = StringVar()
+virtue_selected = StringVar()
+ten_point_selected = StringVar()
 
 attribute_names = [["Strength","Dexterity","Stamina"],["Charisma","Manipulation","Appearance"],
                    ["Perception","Intelligence","Wits"]]#this stores the name of each attrubtue to popuplate the UI
@@ -25,6 +27,9 @@ abilities_names = [["Acting","Alertness","Athletics","Brawl","Doge","Empathy","I
 virtue_names = ["Conscience","Self-Control","Courage"]
 ten_point_names = ["Humanity","Willpower","Faith"]
 health_values_name = ["Healthy","Bruised","Hurt","Injured","Wounded","Mauled","Crippled","Incapacitated"]
+typeValues = ["select relevent attributes and abilites","Initiative","include virtue","include 10 point value", "include virtue and 10 point"
+              ,"use attribute and 10 point", "use attribute and virtue","use ability and 10 point", "use ability and virtue", "soak roll","ranged attack"
+              ,"unarmed melee","armed melee"]
 
 def update_value_DC(a,n):
     global dc
@@ -91,7 +96,58 @@ def writeToFile():
         filehandle.write('\n')
         json.dump(health_value, filehandle)
 
+def get_num_rolls():
+    global typeValues
+    v1 = 0
+    v2 = 0
+    v3 = 0
+    v4 = 0
+    if typeValues.index(typeBox.get()) == 1:#select relevent attributes and abilites
+        v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
+        v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
+         #get values from combobox and cast to int summing for num dice
+    elif typeValues.index(typeBox.get()) == 2:#Initiative
+        v1 = attribute_values[0][1]
+        v2 = attribute_values[2][2]
+    elif typeValues.index(typeBox.get()) == 3:#include virtue
+        v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
+        v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
+    elif typeValues.index(typeBox.get()) == 4:#include 10 point value
+        v1 = attribute_values[0][1]
+        v2 = attribute_values[2][2]
+    elif typeValues.index(typeBox.get()) == 5:#include virtue and 10 point
+        v1 = attribute_values[0][1]
+        v2 = attribute_values[2][2]
+    elif typeValues.index(typeBox.get()) == 6:#use attribute and 10 point
+        v1 = attribute_values[0][1]
+        v2 = attribute_values[2][2]
+    elif typeValues.index(typeBox.get()) == 7:#use attribute and virtue
+        v1 = attribute_values[0][1]
+        v2 = attribute_values[2][2]
+    elif typeValues.index(typeBox.get()) == 8:#use ability and 10 point
+        v1 = attribute_values[0][1]
+        v2 = attribute_values[2][2]    
+    elif typeValues.index(typeBox.get()) == 9:#use ability and virtue
+        v1 = attribute_values[0][1]
+        v2 = attribute_values[2][2]
+    elif typeValues.index(typeBox.get()) == 10:#soak roll
+        v1 = attribute_values[0][1]
+        v2 = attribute_values[2][2]
+    elif typeValues.index(typeBox.get()) == 11:#ranged attack
+        v1 = attribute_values[0][1]
+        v2 = attribute_values[2][2]
+    elif typeValues.index(typeBox.get()) == 12:#unarmed melee
+        v1 = attribute_values[0][1]
+        v2 = attribute_values[2][2]
+    elif typeValues.index(typeBox.get()) == 13:#armed melee
+        v1 = attribute_values[0][1]
+        v2 = attribute_values[2][2]
+    rolls = int(v1)+int(v2)+int(v3)+int(v4)
+    rolls = min(rolls,rolls+1-health_value) + int(modInputCount.get())
+    return rolls
+
 #recursivly handles mastery rolls
+
 def dice_loop(dc,rawDice):
     roll = random.randint(1, 10)#rolls a d10
     suc = 0
@@ -112,13 +168,7 @@ def roll_my_dice():
     global dc
     global health_value
     global modInputCount
-    if typeBox.get() == "Initive":
-        rolls = attribute_values[0][1] + attribute_values[2][2]
-    else:
-        v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
-        v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
-        rolls = int(v1)+int(v2) #get values from combobox and cast to int summing for num dice
-    rolls = min(rolls,rolls+1-health_value) + int(modInputCount.get())
+    rolls = get_num_rolls()
     dc = int(dc) #get values from combobox and cast to int
     successes = 0 #storage for number of successes
     rawDice = '' #storage for dice log
@@ -138,13 +188,7 @@ def predict_my_dice():
     global dc
     global health_value
     global mastery
-    if typeBox.get() == "Initive":
-        rolls = attribute_values[0][1] + attribute_values[2][2] + int(modInputCount.get())
-    else:
-        v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
-        v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
-        rolls = int(v1)+int(v2) #get values from combobox and cast to int summing for num dice
-    rolls = min(rolls,rolls+1-health_value)
+    rolls = get_num_rolls()
     prediction = ((10-dc)*rolls)*.1 + int(modInputValue.get())
     if mastery.get() == 1:
         prediction += rolls*.1
@@ -154,6 +198,8 @@ def clear_values():
     global dc
     global attribute_selected
     global ability_selected
+    global ten_point_selected
+    global ten_point_selected
     modInputValue.delete(0,END)
     modInputCount.delete(0,END)
     modInputValue.insert(INSERT,"0")
@@ -164,6 +210,9 @@ def clear_values():
     typeBox.set("")
     attribute_selected.set("-1,-1")
     ability_selected.set("-1,-1")
+    ten_point_selected.set("-1")
+    virtue_selected.set("-1")
+
 
 
 getAllFromFile()
@@ -218,6 +267,12 @@ for i in range(3):
         comboboxT.place(x=(i*230+35+box_width*6)*screen_x_scale,y=(50+440)*screen_y_scale)
         comboboxT.bind("<<ComboboxSelected>>", lambda event,i=i: update_value_virtue(i,event.widget.get()))
         comboboxT.set(virtue_values[i])
+        Radiobutton(
+            root,
+            text="",
+            variable=virtue_selected,
+            value=str(i),
+            ).place(x=(i*230+35+box_width*9)*screen_x_scale,y=(50+440)*screen_y_scale)
 
 for i in range(3):
         text_stat_temp = Text(root,height=box_height,width=box_width)#this line and the following create the 10 point titles and values
@@ -232,6 +287,12 @@ for i in range(3):
         comboboxM.bind("<<ComboboxSelected>>", lambda event,i=i,comboboxM=comboboxM: update_value_10s(i,event.widget.get(),comboboxM))
         comboboxT.set(ten_point_values_max[i])
         comboboxM.set(ten_point_values[i])
+        Radiobutton(
+            root,
+            text="",
+            variable=ten_point_selected,
+            value=str(i),
+            ).place(x=(i*230+70+box_width*9)*screen_x_scale,y=(80+440)*screen_y_scale)
 
 healthTextBox = Text(root,height=box_height,width=box_width)#this line and the following create the health title and value
 healthTextBox.insert(INSERT,"health")
@@ -274,12 +335,13 @@ predictButton.place(x=910*screen_x_scale,y=20*screen_y_scale)
 predictFeild = Label(root, text='Pridiction')
 predictFeild.place(x=700*screen_x_scale,y=310*screen_y_scale)
 
+
 #allows the user to select between initive or using the DC and Radiobuttons
 typeLabel = Text(root,height=box_height,width=box_width*2+5)
 typeLabel.insert(INSERT,"Select between preset or input")
 typeLabel.bindtags((str(text_stat_temp), str(root), "all"))
 typeLabel.place(x=700*screen_x_scale,y=110*screen_y_scale)
-typeBox = Combobox(root,state='readonly',values=["Initive","select relevent attributes"],height=box_height,width=5)
+typeBox = Combobox(root,state='readonly',values=typeValues,height=box_height,width=5)
 typeBox.place(x=700*screen_x_scale,y=125*screen_y_scale)
 
 def only_numbers(char): # used for the validation of 
@@ -301,5 +363,6 @@ modInputValue = Entry(root,width=5,validate="key", validatecommand=(validation, 
 modInputValue.insert(INSERT,"0")
 modInputValue.place(x=700*screen_x_scale,y=225*screen_y_scale)
 
+clear_values()
 
 mainloop()

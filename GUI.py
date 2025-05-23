@@ -111,13 +111,14 @@ def dice_loop(dc,rawDice):
 def roll_my_dice():
     global dc
     global health_value
+    global modInputCount
     if typeBox.get() == "Initive":
         rolls = attribute_values[0][1] + attribute_values[2][2]
     else:
         v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
         v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
         rolls = int(v1)+int(v2) #get values from combobox and cast to int summing for num dice
-    rolls = min(rolls,rolls+1-health_value)
+    rolls = min(rolls,rolls+1-health_value) + int(modInputCount.get("1.0",END))
     dc = int(dc) #get values from combobox and cast to int
     successes = 0 #storage for number of successes
     rawDice = '' #storage for dice log
@@ -126,24 +127,25 @@ def roll_my_dice():
         rawDice = temp[1] #store dice log
         successes += temp[0]#store successes
     rawDice = rawDice[0:len(rawDice)-1]#remove trailing comma
+    successes += int(modInputValue.get("1.0",END))
     if successes <= 0: #special botch case
         results.configure(text='Botch: '+ str(successes))
     else: #non-botch output
         results.configure(text="Successes: "+str(successes))
     diceOut.configure(text="Result: "+str(rawDice)) #output dice log
-    diceCount.configure(text="Total Dice: "+ str(len(rawDice.split(","))))
+    diceCount.configure(text="Total Dice: "+ str(min(rolls,len(rawDice.split(",")))))
 def predict_my_dice():
     global dc
     global health_value
     global mastery
     if typeBox.get() == "Initive":
-        rolls = attribute_values[0][1] + attribute_values[2][2]
+        rolls = attribute_values[0][1] + attribute_values[2][2] + int(modInputValue.get("1.0",END))
     else:
         v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
         v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
         rolls = int(v1)+int(v2) #get values from combobox and cast to int summing for num dice
     rolls = min(rolls,rolls+1-health_value)
-    prediction = ((10-dc)*rolls)*.1
+    prediction = ((10-dc)*rolls)*.1 + int(modInputCount.get("1.0",END))
     if mastery.get() == 1:
         prediction += rolls*.1
     predictFeild.configure(text="Expected Successes: " + str(prediction))    
@@ -226,13 +228,13 @@ healthComboBox.bind("<<ComboboxSelected>>", lambda event,i=i: update_value_healt
 healthComboBox.set(health_values_name[health_value])
 
 results = Label(root, text='Results')
-results.place(x=700*screen_x_scale,y=145*screen_y_scale)
+results.place(x=700*screen_x_scale,y=235*screen_y_scale)
 
 diceOut = Label(root, text='Raw Dice Here')
-diceOut.place(x=700*screen_x_scale,y=175*screen_y_scale)
+diceOut.place(x=700*screen_x_scale,y=255*screen_y_scale)
 
 diceCount = Label(root, text='Total Dice')
-diceCount.place(x=700*screen_x_scale,y=200*screen_y_scale)
+diceCount.place(x=700*screen_x_scale,y=280*screen_y_scale)
 
 dcLabel = Text(root,height=box_height,width=box_width)
 dcLabel.insert(INSERT,"Roll DC")
@@ -252,7 +254,7 @@ predictButton=Button(root, height=1, width=6, text="Prediction", command=lambda:
 predictButton.place(x=910*screen_x_scale,y=20*screen_y_scale)
 
 predictFeild = Label(root, text='Pridiction')
-predictFeild.place(x=700*screen_x_scale,y=230*screen_y_scale)
+predictFeild.place(x=700*screen_x_scale,y=310*screen_y_scale)
 
 #create the radiobuttons
 
@@ -263,6 +265,21 @@ typeLabel.bindtags((str(text_stat_temp), str(root), "all"))
 typeLabel.place(x=700*screen_x_scale,y=110*screen_y_scale)
 typeBox = Combobox(root,state='readonly',values=["Initive","select relevent attributes"],height=box_height,width=5)
 typeBox.place(x=700*screen_x_scale,y=125*screen_y_scale)
+
+modLabelCount = Text(root,height=box_height,width=box_width*2+12)
+modLabelCount.insert(INSERT,"Add any other dice count modifiers")
+modLabelCount.bindtags((str(text_stat_temp), str(root), "all"))
+modLabelCount.place(x=700*screen_x_scale,y=160*screen_y_scale)
+modInputCount = Text(root,height=box_height,width=box_width)
+modInputCount.insert(INSERT,"0")
+modInputCount.place(x=700*screen_x_scale,y=180*screen_y_scale)
+modLabelValue = Text(root,height=box_height,width=box_width*2+12)
+modLabelValue.insert(INSERT,"Add any number of additional successes")
+modLabelValue.bindtags((str(text_stat_temp), str(root), "all"))
+modLabelValue.place(x=700*screen_x_scale,y=200*screen_y_scale)
+modInputValue = Text(root,height=box_height,width=box_width)
+modInputValue.insert(INSERT,"0")
+modInputValue.place(x=700*screen_x_scale,y=220*screen_y_scale)
 
 
 mainloop()

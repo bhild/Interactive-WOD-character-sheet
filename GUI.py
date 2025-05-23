@@ -131,7 +131,7 @@ def roll_my_dice():
     else: #non-botch output
         results.configure(text="Successes: "+str(successes))
     diceOut.configure(text="Result: "+str(rawDice)) #output dice log
-    diceCount.configure(text="Total Dice: "+ str(rolls))
+    diceCount.configure(text="Total Dice: "+ str(len(rawDice.split(","))))
 def predict_my_dice():
     global dc
     global health_value

@@ -5,12 +5,17 @@ from operator import itemgetter
 import json
 
 root=Tk()
-attribute_values = [[0,0,0],[0,0,0],[0,0,0]]
+attribute_values = [[1,1,1],[1,1,1],[1,1,1]]#initlize to 1 because that is the min barring exceptional circumstance
 abilities_values = [[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]]
 virtue_values = [0,0,0]
 ten_point_values = [0,0,0]
 ten_point_values_max = [0,0,0]
 health_value = 0
+dc = 0
+mastery = IntVar()
+attribute_selected = StringVar()
+ability_selected = StringVar()
+
 attribute_names = [["Strength","Dexterity","Stamina"],["Charisma","Manipulation","Appearance"],
                    ["Perception","Intelligence","Wits"]]#this stores the name of each attrubtue to popuplate the UI
 abilities_names = [["Acting","Alertness","Athletics","Brawl","Doge","Empathy","Intimidation","Leadership","Streetwise","Subtrafuge"]#talents
@@ -20,8 +25,10 @@ abilities_names = [["Acting","Alertness","Athletics","Brawl","Doge","Empathy","I
 virtue_names = ["Conscience","Self-Control","Courage"]
 ten_point_names = ["Humanity","Willpower","Faith"]
 health_values_name = ["Healthy","Bruised","Hurt","Injured","Wounded","Mauled","Crippled","Incapacitated"]
-mastery = IntVar()
 
+def update_value_DC(a,n):
+    global dc
+    dc = int(n)
 def update_value_attribute(a,b,n):
     attribute_values[a][b] = int(n)#update the approrate array
     writeToFile()#overwrite the old data with new data
@@ -101,9 +108,17 @@ def dice_loop(dc,rawDice):
     return [suc,rawDice]#returns array of the dice rolls and number of successes
 
 #outputs the dice based on the input from the comboboxes uses dice_loop as a helper function
-def roll_my_dice(v1,v2,v3):
-    rolls = int(v1)+int(v2) #get values from combobox and cast to int summing for num dice
-    dc = int(v3) #get values from combobox and cast to int
+def roll_my_dice():
+    global dc
+    global health_value
+    if typeBox.get() == "Initive":
+        rolls = attribute_values[0][1] + attribute_values[2][2]
+    else:
+        v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
+        v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
+        rolls = int(v1)+int(v2) #get values from combobox and cast to int summing for num dice
+    rolls = min(rolls,rolls+1-health_value)
+    dc = int(dc) #get values from combobox and cast to int
     successes = 0 #storage for number of successes
     rawDice = '' #storage for dice log
     for x in range(rolls): #call dice_loop for each dice roll
@@ -116,7 +131,22 @@ def roll_my_dice(v1,v2,v3):
     else: #non-botch output
         results.configure(text="Successes: "+str(successes))
     diceOut.configure(text="Result: "+str(rawDice)) #output dice log
-
+    diceCount.configure(text="Total Dice: "+ str(rolls))
+def predict_my_dice():
+    global dc
+    global health_value
+    global mastery
+    if typeBox.get() == "Initive":
+        rolls = attribute_values[0][1] + attribute_values[2][2]
+    else:
+        v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
+        v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
+        rolls = int(v1)+int(v2) #get values from combobox and cast to int summing for num dice
+    rolls = min(rolls,rolls+1-health_value)
+    prediction = ((10-dc)*rolls)*.1
+    if mastery.get() == 1:
+        prediction += rolls*.1
+    predictFeild.configure(text="Expected Successes: " + str(prediction))    
 
 
 getAllFromFile()
@@ -130,7 +160,6 @@ root.geometry(str(int(1000*screen_x_scale))+"x"+str(int(900*screen_y_scale)))
 
 for i in range(3):#this loop creates the attribute names and feilds
     for j in range(3):
-
         text_stat_temp = Text(root,height=box_height,width=box_width)#this line and the following create the attribute titles and values
         text_stat_temp.insert(INSERT,attribute_names[i][j])#add the correct name
         text_stat_temp.bindtags((str(text_stat_temp), str(root), "all"))#stop the user from clicking on or typing in the feild
@@ -139,6 +168,13 @@ for i in range(3):#this loop creates the attribute names and feilds
         comboboxT.place(x=(i*230+35+box_width*6)*screen_x_scale,y=(j*30+50)*screen_y_scale)#place at the target location
         comboboxT.bind("<<ComboboxSelected>>", lambda event,i=i,j=j: update_value_attribute(i,j,event.widget.get()))#cause the combobox to run the target function when a selection is made
         comboboxT.set(attribute_values[i][j])# make the combo box display the correct value to begin with
+        Radiobutton(
+            root,
+            text="",
+            variable=attribute_selected,
+            value=str(i)+","+str(j),
+        ).place(x=(i*230+35+box_width*9)*screen_x_scale,y=(j*30+50)*screen_y_scale)
+
 for i in range(3):#this loop creates the ability names and feilds
     for j in range(10):
         text_stat_temp = Text(root,height=box_height,width=box_width)#this line and the following create the ability titles and values
@@ -149,6 +185,13 @@ for i in range(3):#this loop creates the ability names and feilds
         comboboxT.place(x=(i*230+35+box_width*6)*screen_x_scale,y=(j*30+50+120)*screen_y_scale)
         comboboxT.bind("<<ComboboxSelected>>", lambda event,i=i,j=j: update_value_ablity(i,j,event.widget.get()))
         comboboxT.set(abilities_values[i][j])
+        Radiobutton(
+            root,
+            text="",
+            variable=ability_selected,
+            value=str(i)+","+str(j),
+            ).place(x=(i*230+35+box_width*9)*screen_x_scale,y=(j*30+50+120)*screen_y_scale)
+
 for i in range(3):
         text_stat_temp = Text(root,height=box_height,width=box_width)#this line and the following create the virtue titles and values
         text_stat_temp.insert(INSERT,virtue_names[i])
@@ -158,6 +201,7 @@ for i in range(3):
         comboboxT.place(x=(i*230+35+box_width*6)*screen_x_scale,y=(50+440)*screen_y_scale)
         comboboxT.bind("<<ComboboxSelected>>", lambda event,i=i: update_value_virtue(i,event.widget.get()))
         comboboxT.set(virtue_values[i])
+
 for i in range(3):
         text_stat_temp = Text(root,height=box_height,width=box_width)#this line and the following create the 10 point titles and values
         text_stat_temp.insert(INSERT,ten_point_names[i])
@@ -187,14 +231,38 @@ results.place(x=700*screen_x_scale,y=145*screen_y_scale)
 diceOut = Label(root, text='Raw Dice Here')
 diceOut.place(x=700*screen_x_scale,y=175*screen_y_scale)
 
+diceCount = Label(root, text='Total Dice')
+diceCount.place(x=700*screen_x_scale,y=200*screen_y_scale)
+
 dcLabel = Text(root,height=box_height,width=box_width)
 dcLabel.insert(INSERT,"Roll DC")
 dcLabel.bindtags((str(text_stat_temp), str(root), "all"))
 dcLabel.place(x=700*screen_x_scale,y=20*screen_y_scale)
 dcComboBox = Combobox(root,state='readonly',values=[0,1,2,3,4,5,6,7,8,9,10],height=box_height,width=1)
 dcComboBox.place(x=770*screen_x_scale,y=20*screen_y_scale)
-dcComboBox.bind("<<ComboboxSelected>>", lambda event,i=i: update_value_virtue(i,event.widget.get()))
+dcComboBox.bind("<<ComboboxSelected>>", lambda event,i=i: update_value_DC(i,event.widget.get()))
+dcComboBox.set(0)
 
-Checkbutton(root, text='mastery', variable=mastery, onvalue=1, offvalue=0).place(x=700*screen_x_scale,y=50*screen_y_scale)
+Checkbutton(root, text='mastery', variable=mastery, onvalue=1, offvalue=0).place(x=700*screen_x_scale,y=70*screen_y_scale)
+
+rollButton=Button(root, height=1, width=6, text="Roll", command=lambda: roll_my_dice())
+rollButton.place(x=820*screen_x_scale,y=20*screen_y_scale)
+
+predictButton=Button(root, height=1, width=6, text="Prediction", command=lambda: predict_my_dice())
+predictButton.place(x=910*screen_x_scale,y=20*screen_y_scale)
+
+predictFeild = Label(root, text='Pridiction')
+predictFeild.place(x=700*screen_x_scale,y=230*screen_y_scale)
+
+#create the radiobuttons
+
+#allows the user to select between initive or using the DC and Radiobuttons
+typeLabel = Text(root,height=box_height,width=box_width*2+5)
+typeLabel.insert(INSERT,"Select between preset or input")
+typeLabel.bindtags((str(text_stat_temp), str(root), "all"))
+typeLabel.place(x=700*screen_x_scale,y=110*screen_y_scale)
+typeBox = Combobox(root,state='readonly',values=["Initive","select relevent attributes"],height=box_height,width=5)
+typeBox.place(x=700*screen_x_scale,y=125*screen_y_scale)
+
 
 mainloop()

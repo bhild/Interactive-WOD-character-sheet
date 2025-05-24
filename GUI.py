@@ -3,6 +3,7 @@ import random
 from tkinter.ttk import Combobox
 from operator import itemgetter
 import json
+import re
 
 root=Tk()
 attribute_values = [[1,1,1],[1,1,1],[1,1,1]]#initlize to 1 because that is the min barring exceptional circumstance
@@ -21,14 +22,14 @@ ten_point_selected = StringVar()
 attribute_names = [["Strength","Dexterity","Stamina"],["Charisma","Manipulation","Appearance"],
                    ["Perception","Intelligence","Wits"]]#this stores the name of each attrubtue to popuplate the UI
 abilities_names = [["Acting","Alertness","Athletics","Brawl","Doge","Empathy","Intimidation","Leadership","Streetwise","Subtrafuge"]#talents
-                   ,["Animal Ken","Drivfe","Etiquette","Firearms","Melle","Music","Repair","Security","Stelth","Surival"]#Skills
+                   ,["Animal Ken","Drive","Etiquette","Firearms","Melee","Music","Repair","Security","Stelth","Surival"]#Skills
                    ,["Bureaucracy","Computer","Finance","Investigation","Law","Linguistics","Medicine","Occult","Pilitics","Science"]#knowlages
                    ]#this stores the name of each abilities to popuplate the UI
 virtue_names = ["Conscience","Self-Control","Courage"]
 ten_point_names = ["Humanity","Willpower","Faith"]
 health_values_name = ["Healthy","Bruised","Hurt","Injured","Wounded","Mauled","Crippled","Incapacitated"]
 typeValues = ["select relevent attributes and abilites","Initiative","include virtue","include 10 point value", "include virtue and 10 point"
-              ,"use attribute and 10 point", "use attribute and virtue","use ability and 10 point", "use ability and virtue", "soak roll","ranged attack"
+              ,"use attribute and 10 point", "use attribute and virtue","use ability and 10 point", "use ability and virtue", "soak roll","ranged attack (thrown)", "ranged attack (weapon)"
               ,"unarmed melee","armed melee"]
 
 def update_value_DC(a,n):
@@ -102,48 +103,54 @@ def get_num_rolls():
     v2 = 0
     v3 = 0
     v4 = 0
-    if typeValues.index(typeBox.get()) == 1:#select relevent attributes and abilites
+    if typeValues.index(typeBox.get()) == 0:#select relevent attributes and abilites
         v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
         v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
          #get values from combobox and cast to int summing for num dice
-    elif typeValues.index(typeBox.get()) == 2:#Initiative
+    elif typeValues.index(typeBox.get()) == 1:#Initiative
         v1 = attribute_values[0][1]
         v2 = attribute_values[2][2]
-    elif typeValues.index(typeBox.get()) == 3:#include virtue
+    elif typeValues.index(typeBox.get()) == 2:#include virtue
         v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
         v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
-    elif typeValues.index(typeBox.get()) == 4:#include 10 point value
+        v3 = int(virtue_selected)
+    elif typeValues.index(typeBox.get()) == 3:#include 10 point value
         v1 = attribute_values[0][1]
         v2 = attribute_values[2][2]
-    elif typeValues.index(typeBox.get()) == 5:#include virtue and 10 point
+        v4 = int(ten_point_selected)
+    elif typeValues.index(typeBox.get()) == 4:#include virtue and 10 point
         v1 = attribute_values[0][1]
         v2 = attribute_values[2][2]
-    elif typeValues.index(typeBox.get()) == 6:#use attribute and 10 point
+        v3 = int(virtue_selected)
+        v4 = int(ten_point_selected)
+    elif typeValues.index(typeBox.get()) == 5:#use attribute and 10 point
         v1 = attribute_values[0][1]
-        v2 = attribute_values[2][2]
-    elif typeValues.index(typeBox.get()) == 7:#use attribute and virtue
+        v4 = int(ten_point_selected)
+    elif typeValues.index(typeBox.get()) == 6:#use attribute and virtue
         v1 = attribute_values[0][1]
-        v2 = attribute_values[2][2]
-    elif typeValues.index(typeBox.get()) == 8:#use ability and 10 point
-        v1 = attribute_values[0][1]
+        v3 = int(virtue_selected)
+    elif typeValues.index(typeBox.get()) == 7:#use ability and 10 point
+        v4 = int(ten_point_selected)
         v2 = attribute_values[2][2]    
-    elif typeValues.index(typeBox.get()) == 9:#use ability and virtue
+    elif typeValues.index(typeBox.get()) == 8:#use ability and virtue
+        v3 = int(virtue_selected)
+        v2 = attribute_values[2][2]
+    elif typeValues.index(typeBox.get()) == 9:#soak roll
+        v1 = attribute_values[0][2]
+    elif typeValues.index(typeBox.get()) == 10:#ranged attack thrown dex + athletics
+        v1 = attribute_values[0][1]
+        v2 = attribute_values[0][2]
+    elif typeValues.index(typeBox.get()) == 11:#ranged attack thrown dex + firearms
         v1 = attribute_values[0][1]
         v2 = attribute_values[2][2]
-    elif typeValues.index(typeBox.get()) == 10:#soak roll
+    elif typeValues.index(typeBox.get()) == 12:#unarmed melee dex+brawl
         v1 = attribute_values[0][1]
-        v2 = attribute_values[2][2]
-    elif typeValues.index(typeBox.get()) == 11:#ranged attack
+        v2 = attribute_values[0][3]
+    elif typeValues.index(typeBox.get()) == 13:#armed melee dex+melee
         v1 = attribute_values[0][1]
-        v2 = attribute_values[2][2]
-    elif typeValues.index(typeBox.get()) == 12:#unarmed melee
-        v1 = attribute_values[0][1]
-        v2 = attribute_values[2][2]
-    elif typeValues.index(typeBox.get()) == 13:#armed melee
-        v1 = attribute_values[0][1]
-        v2 = attribute_values[2][2]
+        v2 = attribute_values[1][4]
     rolls = int(v1)+int(v2)+int(v3)+int(v4)
-    rolls = min(rolls,rolls+1-health_value) + int(modInputCount.get())
+    rolls = min(rolls,rolls+1-health_value) + int(re.sub("(?!^)-","",modInputCount.get()))
     return rolls
 
 #recursivly handles mastery rolls
@@ -177,7 +184,7 @@ def roll_my_dice():
         rawDice = temp[1] #store dice log
         successes += temp[0]#store successes
     rawDice = rawDice[0:len(rawDice)-1]#remove trailing comma
-    successes += int(modInputValue.get())
+    successes += int(re.sub("(?!^)-","",modInputValue.get()))
     if successes <= 0: #special botch case
         results.configure(text='Botch: '+ str(successes))
     else: #non-botch output
@@ -189,7 +196,7 @@ def predict_my_dice():
     global health_value
     global mastery
     rolls = get_num_rolls()
-    prediction = ((10-dc)*rolls)*.1 + int(modInputValue.get())
+    prediction = ((10-dc)*rolls)*.1 + int(re.sub("(?!^)-","",modInputValue.get()))
     if mastery.get() == 1:
         prediction += rolls*.1
     predictFeild.configure(text="Expected Successes: " + str(prediction))    
@@ -345,6 +352,8 @@ typeBox = Combobox(root,state='readonly',values=typeValues,height=box_height,wid
 typeBox.place(x=700*screen_x_scale,y=125*screen_y_scale)
 
 def only_numbers(char): # used for the validation of 
+    if char == '-':
+        return True
     return char.isdigit()
 validation = root.register(only_numbers)
 

@@ -42,7 +42,7 @@ def update_value_ablity(a,b,n):
     abilities_values[a][b] = int(n)
     writeToFile()
 def update_value_virtue(a,n):
-    ten_point_values_max[a] = int(n)
+    virtue_values[a] = int(n)
     writeToFile()
 def update_value_10s(a,n,comboboxM):
     if int(n) > ten_point_values_max[a]:#prevent a user from making a current value more than the maximum value
@@ -121,19 +121,19 @@ def get_num_rolls():
     elif typeValues.index(typeBox.get()) == 4:#include virtue and 10 point
         v1 = attribute_values[0][1]
         v2 = attribute_values[2][2]
-        v3 = int(virtue_selected)
+        v3 = int(virtue_selected.get())
         v4 = int(ten_point_selected)
     elif typeValues.index(typeBox.get()) == 5:#use attribute and 10 point
         v1 = attribute_values[0][1]
-        v4 = int(ten_point_selected)
+        v4 = int(ten_point_selected.get())
     elif typeValues.index(typeBox.get()) == 6:#use attribute and virtue
         v1 = attribute_values[0][1]
-        v3 = int(virtue_selected)
+        v3 = int(virtue_selected.get())
     elif typeValues.index(typeBox.get()) == 7:#use ability and 10 point
-        v4 = int(ten_point_selected)
+        v4 = int(ten_point_selected.get())
         v2 = attribute_values[2][2]    
     elif typeValues.index(typeBox.get()) == 8:#use ability and virtue
-        v3 = int(virtue_selected)
+        v3 = int(virtue_selected.get())
         v2 = attribute_values[2][2]
     elif typeValues.index(typeBox.get()) == 9:#soak roll
         v1 = attribute_values[0][2]

@@ -31,6 +31,7 @@ health_values_name = ["Healthy","Bruised","Hurt","Injured","Wounded","Mauled","C
 typeValues = ["select relevent attributes and abilites","Initiative","include virtue","include 10 point value", "include virtue and 10 point"
               ,"use attribute and 10 point", "use attribute and virtue","use ability and 10 point", "use ability and virtue", "soak roll","ranged attack (thrown)", "ranged attack (weapon)"
               ,"unarmed melee","armed melee"]
+predictFeildOutput = [Text(root)]*10
 
 def update_value_DC(a,n):#updates the value of the DC varible
     global dc
@@ -103,7 +104,10 @@ def get_num_rolls():
     v2 = 0
     v3 = 0
     v4 = 0
-    if typeValues.index(typeBox.get()) == 0:#select relevent attributes and abilites
+    if typeBox.get() == "":
+        v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
+        v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
+    elif typeValues.index(typeBox.get()) == 0:#select relevent attributes and abilites
         v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
         v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
          #get values from combobox and cast to int summing for num dice
@@ -196,6 +200,13 @@ def predict_my_dice():#predict the outcome of a dice roll with the given values
     global health_value
     global mastery
     rolls = get_num_rolls()
+    for i in range(10):
+        prediction = ((10-(i+1))*rolls)*.1 + int(re.sub("(?!^)-","",modInputValue.get()))
+        if mastery.get() == 1:
+            prediction += rolls*.1
+        predictFeildOutput[i].delete("1.0",END)
+        predictFeildOutput[i].insert(INSERT,str(prediction))       
+
     prediction = ((10-dc)*rolls)*.1 + int(re.sub("(?!^)-","",modInputValue.get()))
     if mastery.get() == 1:
         prediction += rolls*.1
@@ -300,6 +311,24 @@ for i in range(3):# this loop creates the 10 point values
             variable=ten_point_selected,
             value=str(i),
             ).place(x=(i*230+70+box_width*9)*screen_x_scale,y=(80+440)*screen_y_scale)
+        
+predictionDCLabel = Text(root,height=box_height,width=int(box_width/2))
+predictionDCLabel.insert(INSERT, "DC = ")
+predictionDCLabel.bindtags((str(text_stat_temp), str(root), "all"))
+predictionDCLabel.place(x=(20)*screen_x_scale,y=(140+440)*screen_y_scale)
+predictionResult = Text(root,height=box_height,width=int(box_width))
+predictionResult.insert(INSERT, "Expected = ")
+predictionResult.bindtags((str(text_stat_temp), str(root), "all"))
+predictionResult.place(x=(20)*screen_x_scale,y=(170+440)*screen_y_scale)
+for i in range(10):
+    predictFeildText = Text(root,height=box_height,width=2)
+    predictFeildText.insert(INSERT,str(i+1))
+    predictFeildText.bindtags((str(text_stat_temp), str(root), "all"))
+    predictFeildText.place(x=(i*50+80)*screen_x_scale,y=(140+440)*screen_y_scale)
+    predictFeildOutput[i] = Text(root,height=box_height,width=5)
+    predictFeildOutput[i].bindtags((str(text_stat_temp), str(root), "all"))
+    predictFeildOutput[i].place(x=(i*50+80)*screen_x_scale,y=(170+440)*screen_y_scale)
+
 
 healthTextBox = Text(root,height=box_height,width=box_width)#this line and the following create the health title and value
 healthTextBox.insert(INSERT,"health")
@@ -371,6 +400,11 @@ modLabelValue.place(x=700*screen_x_scale,y=205*screen_y_scale)
 modInputValue = Entry(root,width=5,validate="key", validatecommand=(validation, '%S'))
 modInputValue.insert(INSERT,"0")
 modInputValue.place(x=700*screen_x_scale,y=225*screen_y_scale)
+
+
+
+
+
 
 clear_values()
 

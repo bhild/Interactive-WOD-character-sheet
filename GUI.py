@@ -32,33 +32,33 @@ typeValues = ["select relevent attributes and abilites","Initiative","include vi
               ,"use attribute and 10 point", "use attribute and virtue","use ability and 10 point", "use ability and virtue", "soak roll","ranged attack (thrown)", "ranged attack (weapon)"
               ,"unarmed melee","armed melee"]
 
-def update_value_DC(a,n):
+def update_value_DC(a,n):#updates the value of the DC varible
     global dc
     dc = int(n)
-def update_value_attribute(a,b,n):
+def update_value_attribute(a,b,n):#updates the value of the attibute varible
     attribute_values[a][b] = int(n)#update the approrate array
     writeToFile()#overwrite the old data with new data
-def update_value_ablity(a,b,n):
+def update_value_ablity(a,b,n):#updates the value of the ability varible
     abilities_values[a][b] = int(n)
     writeToFile()
-def update_value_virtue(a,n):
+def update_value_virtue(a,n):#updates the value of the virtue varible
     virtue_values[a] = int(n)
     writeToFile()
-def update_value_10s(a,n,comboboxM):
+def update_value_10s(a,n,comboboxM):#updates the value of the 10 point values varible
     if int(n) > ten_point_values_max[a]:#prevent a user from making a current value more than the maximum value
          ten_point_values[a] = ten_point_values_max[a]
     else:
          ten_point_values[a] = int(n)
     comboboxM.set(ten_point_values[a])
     writeToFile()
-def update_value_10s_MAX(a,n):
+def update_value_10s_MAX(a,n):#updates the value of the ten point max varible
     ten_point_values_max[a] = int(n)
     writeToFile()
-def update_value_health(a,n):
+def update_value_health(a,n):#updates the value of the health varible
     global health_value
     health_value = health_values_name.index(n)
     writeToFile()
-def getAllFromFile():
+def getAllFromFile():#this reads output file and stores all the data into the variables
     global attribute_values
     global abilities_values
     global ten_point_values
@@ -76,7 +76,7 @@ def getAllFromFile():
             health_value = int(json.loads(file.readline()))
     except:
         writeToFile()
-def writeToFile():
+def writeToFile():#write all current values to the output file
     global attribute_values
     global abilities_values
     global ten_point_values
@@ -191,7 +191,7 @@ def roll_my_dice():
         results.configure(text="Successes: "+str(successes))
     diceOut.configure(text="Result: "+str(rawDice)) #output dice log
     diceCount.configure(text="Total Dice: "+ str(min(rolls,len(rawDice.split(",")))))
-def predict_my_dice():
+def predict_my_dice():#predict the outcome of a dice roll with the given values
     global dc
     global health_value
     global mastery
@@ -200,7 +200,7 @@ def predict_my_dice():
     if mastery.get() == 1:
         prediction += rolls*.1
     predictFeild.configure(text="Expected Successes: " + str(prediction))    
-def clear_values():
+def clear_values():#resets alll values to a default value
     global mastery
     global dc
     global attribute_selected
@@ -241,7 +241,7 @@ for i in range(3):#this loop creates the attribute names and feilds
         comboboxT.place(x=(i*230+35+box_width*6)*screen_x_scale,y=(j*30+50)*screen_y_scale)#place at the target location
         comboboxT.bind("<<ComboboxSelected>>", lambda event,i=i,j=j: update_value_attribute(i,j,event.widget.get()))#cause the combobox to run the target function when a selection is made
         comboboxT.set(attribute_values[i][j])# make the combo box display the correct value to begin with
-        Radiobutton(
+        Radiobutton(#this creates the radio buttons that allow for the selection of exaclty one atribute to be selected
             root,
             text="",
             variable=attribute_selected,
@@ -258,14 +258,14 @@ for i in range(3):#this loop creates the ability names and feilds
         comboboxT.place(x=(i*230+35+box_width*6)*screen_x_scale,y=(j*30+50+120)*screen_y_scale)
         comboboxT.bind("<<ComboboxSelected>>", lambda event,i=i,j=j: update_value_ablity(i,j,event.widget.get()))
         comboboxT.set(abilities_values[i][j])
-        Radiobutton(
+        Radiobutton(#radio buttons
             root,
             text="",
             variable=ability_selected,
             value=str(i)+","+str(j),
             ).place(x=(i*230+35+box_width*9)*screen_x_scale,y=(j*30+50+120)*screen_y_scale)
 
-for i in range(3):
+for i in range(3):# this loop creates the virtues
         text_stat_temp = Text(root,height=box_height,width=box_width)#this line and the following create the virtue titles and values
         text_stat_temp.insert(INSERT,virtue_names[i])
         text_stat_temp.bindtags((str(text_stat_temp), str(root), "all"))
@@ -274,14 +274,14 @@ for i in range(3):
         comboboxT.place(x=(i*230+35+box_width*6)*screen_x_scale,y=(50+440)*screen_y_scale)
         comboboxT.bind("<<ComboboxSelected>>", lambda event,i=i: update_value_virtue(i,event.widget.get()))
         comboboxT.set(virtue_values[i])
-        Radiobutton(
+        Radiobutton(#radio buttons
             root,
             text="",
             variable=virtue_selected,
             value=str(i),
             ).place(x=(i*230+35+box_width*9)*screen_x_scale,y=(50+440)*screen_y_scale)
 
-for i in range(3):
+for i in range(3):# this loop creates the 10 point values
         text_stat_temp = Text(root,height=box_height,width=box_width)#this line and the following create the 10 point titles and values
         text_stat_temp.insert(INSERT,ten_point_names[i])
         text_stat_temp.bindtags((str(text_stat_temp), str(root), "all"))
@@ -294,7 +294,7 @@ for i in range(3):
         comboboxM.bind("<<ComboboxSelected>>", lambda event,i=i,comboboxM=comboboxM: update_value_10s(i,event.widget.get(),comboboxM))
         comboboxT.set(ten_point_values_max[i])
         comboboxM.set(ten_point_values[i])
-        Radiobutton(
+        Radiobutton(#radio buttons
             root,
             text="",
             variable=ten_point_selected,
@@ -310,36 +310,35 @@ healthComboBox.place(x=(35+box_width*6)*screen_x_scale,y=(110+440)*screen_y_scal
 healthComboBox.bind("<<ComboboxSelected>>", lambda event,i=i: update_value_health(i,event.widget.get()))
 healthComboBox.set(health_values_name[health_value])
 
-results = Label(root, text='Results')
+results = Label(root, text='Results')#results area
 results.place(x=700*screen_x_scale,y=245*screen_y_scale)
 
-diceOut = Label(root, text='Raw Dice Here')
+diceOut = Label(root, text='Raw Dice Here')#shows the raw dice value
 diceOut.place(x=700*screen_x_scale,y=265*screen_y_scale)
 
-diceCount = Label(root, text='Total Dice')
+diceCount = Label(root, text='Total Dice')#shows how many dice were rolled
 diceCount.place(x=700*screen_x_scale,y=290*screen_y_scale)
 
-dcLabel = Text(root,height=box_height,width=box_width)
+dcLabel = Text(root,height=box_height,width=box_width)#this allows the user to input the DC of the roll
 dcLabel.insert(INSERT,"Roll DC")
 dcLabel.bindtags((str(text_stat_temp), str(root), "all"))
 dcLabel.place(x=700*screen_x_scale,y=20*screen_y_scale)
-dcComboBox = Combobox(root,state='readonly',values=[0,1,2,3,4,5,6,7,8,9,10],height=box_height,width=1)
+dcComboBox = Combobox(root,state='readonly',values=[0,1,2,3,4,5,6,7,8,9,10],height=box_height,width=1) #this is the dropdown that allows the user to select 0-10
 dcComboBox.place(x=770*screen_x_scale,y=20*screen_y_scale)
 dcComboBox.bind("<<ComboboxSelected>>", lambda event,i=i: update_value_DC(i,event.widget.get()))
 dcComboBox.set(0)
 
-Checkbutton(root, text='mastery', variable=mastery, onvalue=1, offvalue=0).place(x=700*screen_x_scale,y=70*screen_y_scale)
+Checkbutton(root, text='mastery', variable=mastery, onvalue=1, offvalue=0).place(x=700*screen_x_scale,y=70*screen_y_scale)#enables the mastery of a roll
 
-rollButton=Button(root, height=1, width=6, text="Roll", command=lambda: roll_my_dice())
+rollButton=Button(root, height=1, width=6, text="Roll", command=lambda: roll_my_dice())#clicking this button rolls the dice
 rollButton.place(x=820*screen_x_scale,y=20*screen_y_scale)
 
-clearButton=Button(root, height=1, width=6, text="Clear", command=lambda: clear_values())
+clearButton=Button(root, height=1, width=6, text="Clear", command=lambda: clear_values())#clicking this button clears all values
 clearButton.place(x=820*screen_x_scale,y=50*screen_y_scale)
 
-predictButton=Button(root, height=1, width=6, text="Prediction", command=lambda: predict_my_dice())
+predictButton=Button(root, height=1, width=6, text="Prediction", command=lambda: predict_my_dice())#clicking this button predicts the number of successes
 predictButton.place(x=910*screen_x_scale,y=20*screen_y_scale)
-
-predictFeild = Label(root, text='Pridiction')
+predictFeild = Label(root, text='Pridiction')#this shows the output of the predict button
 predictFeild.place(x=700*screen_x_scale,y=310*screen_y_scale)
 
 
@@ -357,6 +356,7 @@ def only_numbers(char): # used for the validation of
     return char.isdigit()
 validation = root.register(only_numbers)
 
+#these allow the user to manualy add or remove dice and succeses, which is used for special modifiers, like weapons or armor or extra actions
 modLabelCount = Text(root,height=box_height,width=box_width*2+12)
 modLabelCount.insert(INSERT,"Add any other dice count modifiers")
 modLabelCount.bindtags((str(text_stat_temp), str(root), "all"))

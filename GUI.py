@@ -33,7 +33,7 @@ typeValues = ["select relevent attributes and abilites","Initiative","include vi
               ,"unarmed melee","armed melee"]
 predictFeildOutput = [Text(root)]*10
 
-def update_value_DC(a,n):#updates the value of the DC varible
+def update_value_DC(n):#updates the value of the DC varible
     global dc
     dc = int(n)
 def update_value_attribute(a,b,n):#updates the value of the attibute varible
@@ -55,7 +55,7 @@ def update_value_10s(a,n,comboboxM):#updates the value of the 10 point values va
 def update_value_10s_MAX(a,n):#updates the value of the ten point max varible
     ten_point_values_max[a] = int(n)
     writeToFile()
-def update_value_health(a,n):#updates the value of the health varible
+def update_value_health(n):#updates the value of the health varible
     global health_value
     health_value = health_values_name.index(n)
     writeToFile()
@@ -100,13 +100,14 @@ def writeToFile():#write all current values to the output file
 
 def get_num_rolls():
     global typeValues
+    global typeBox
     v1 = 0
     v2 = 0
     v3 = 0
     v4 = 0
     if typeBox.get() == "":
-        v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
-        v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
+        v1 = 0
+        v2 = 0
     elif typeValues.index(typeBox.get()) == 0:#select relevent attributes and abilites
         v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
         v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
@@ -153,6 +154,14 @@ def get_num_rolls():
     elif typeValues.index(typeBox.get()) == 13:#armed melee dex+melee
         v1 = attribute_values[0][1]
         v2 = attribute_values[1][4]
+    if ten_point_selected.get() == '' or int(ten_point_selected.get()) == -1:
+        v4 = 0
+    if virtue_selected.get() == '' or int(virtue_selected.get()) == -1:
+        v3 = 0
+    if ability_selected.get() == '' or int(ability_selected.get().split(",")[0]) == -1:
+        v2 = 0
+    if attribute_selected.get() == '' or int(attribute_selected.get().split(",")[0]) == -1:
+        v1 = 0
     rolls = int(v1)+int(v2)+int(v3)+int(v4)
     rolls = min(rolls,rolls+1-health_value) + int(re.sub("(?!^)-","",modInputCount.get()))
     return rolls
@@ -179,7 +188,10 @@ def roll_my_dice():
     global dc
     global health_value
     global modInputCount
-    rolls = get_num_rolls()
+    try:
+        rolls = get_num_rolls()
+    except:
+        rolls = 0
     dc = int(dc) #get values from combobox and cast to int
     successes = 0 #storage for number of successes
     rawDice = '' #storage for dice log
@@ -225,7 +237,7 @@ def clear_values():#resets alll values to a default value
     mastery.set(0)
     dc = 0
     dcComboBox.set(0)
-    typeBox.set("")
+    typeBox.set(typeValues[0])
     attribute_selected.set("-1,-1")
     ability_selected.set("-1,-1")
     ten_point_selected.set("-1")
@@ -242,6 +254,87 @@ box_height = 1*screen_y_scale
 root.geometry(str(int(1000*screen_x_scale))+"x"+str(int(900*screen_y_scale)))
 
 
+
+predictionDCLabel = Text(root,height=box_height,width=int(box_width/2))
+predictionDCLabel.insert(INSERT, "DC = ")
+predictionDCLabel.bindtags((str(predictionDCLabel), str(root), "all"))
+predictionDCLabel.place(x=(20)*screen_x_scale,y=(140+440)*screen_y_scale)
+predictionResult = Text(root,height=box_height,width=int(box_width))
+predictionResult.insert(INSERT, "Expected = ")
+predictionResult.bindtags((str(predictionResult), str(root), "all"))
+predictionResult.place(x=(20)*screen_x_scale,y=(170+440)*screen_y_scale)
+
+healthTextBox = Text(root,height=box_height,width=box_width)#this line and the following create the health title and value
+healthTextBox.insert(INSERT,"health")
+healthTextBox.bindtags((str(healthTextBox), str(root), "all"))
+healthTextBox.place(x=(+20)*screen_x_scale,y=(110+440)*screen_y_scale)
+healthComboBox = Combobox(root,state='readonly',values=health_values_name,height=box_height,width=8)
+healthComboBox.place(x=(35+box_width*6)*screen_x_scale,y=(110+440)*screen_y_scale)
+healthComboBox.bind("<<ComboboxSelected>>", lambda event: update_value_health(event.widget.get()))
+healthComboBox.set(health_values_name[health_value])
+
+results = Label(root, text='Results')#results area
+results.place(x=700*screen_x_scale,y=245*screen_y_scale)
+
+diceOut = Label(root, text='Raw Dice Here')#shows the raw dice value
+diceOut.place(x=700*screen_x_scale,y=265*screen_y_scale)
+
+diceCount = Label(root, text='Total Dice')#shows how many dice were rolled
+diceCount.place(x=700*screen_x_scale,y=290*screen_y_scale)
+
+dcLabel = Text(root,height=box_height,width=box_width)#this allows the user to input the DC of the roll
+dcLabel.insert(INSERT,"Roll DC")
+dcLabel.bindtags((str(dcLabel), str(root), "all"))
+dcLabel.place(x=700*screen_x_scale,y=20*screen_y_scale)
+dcComboBox = Combobox(root,state='readonly',values=[0,1,2,3,4,5,6,7,8,9,10],height=box_height,width=1) #this is the dropdown that allows the user to select 0-10
+dcComboBox.place(x=770*screen_x_scale,y=20*screen_y_scale)
+dcComboBox.bind("<<ComboboxSelected>>", lambda event: update_value_DC(event.widget.get()))
+dcComboBox.set(0)
+
+Checkbutton(root, text='mastery', variable=mastery, onvalue=1, offvalue=0).place(x=700*screen_x_scale,y=70*screen_y_scale)#enables the mastery of a roll
+
+rollButton=Button(root, height=1, width=6, text="Roll", command=lambda: roll_my_dice())#clicking this button rolls the dice
+rollButton.place(x=820*screen_x_scale,y=20*screen_y_scale)
+
+clearButton=Button(root, height=1, width=6, text="Clear", command=lambda: clear_values())#clicking this button clears all values
+clearButton.place(x=820*screen_x_scale,y=50*screen_y_scale)
+
+predictButton=Button(root, height=1, width=6, text="Prediction", command=lambda: predict_my_dice())#clicking this button predicts the number of successes
+predictButton.place(x=910*screen_x_scale,y=20*screen_y_scale)
+predictFeild = Label(root, text='Pridiction')#this shows the output of the predict button
+predictFeild.place(x=700*screen_x_scale,y=310*screen_y_scale)
+
+
+#allows the user to select between initive or using the DC and Radiobuttons
+typeLabel = Text(root,height=box_height,width=box_width*2+5)
+typeLabel.insert(INSERT,"Select between preset or input")
+typeLabel.bindtags((str(typeLabel), str(root), "all"))
+typeLabel.place(x=700*screen_x_scale,y=110*screen_y_scale)
+typeBox = Combobox(root,state='readonly',values=typeValues,height=box_height,width=5,)
+typeBox.place(x=700*screen_x_scale,y=125*screen_y_scale)
+
+def only_numbers(char): # used for the validation of 
+    if char == '-':
+        return True
+    return char.isdigit()
+validation = root.register(only_numbers)
+
+#these allow the user to manualy add or remove dice and succeses, which is used for special modifiers, like weapons or armor or extra actions
+modLabelCount = Text(root,height=box_height,width=box_width*2+12)
+modLabelCount.insert(INSERT,"Add any other dice count modifiers")
+modLabelCount.bindtags((str(modLabelCount), str(root), "all"))
+modLabelCount.place(x=700*screen_x_scale,y=160*screen_y_scale)
+modInputCount = Entry(root,width=5,validate="key", validatecommand=(validation, '%S'))
+modInputCount.insert(INSERT,"0")
+modInputCount.place(x=700*screen_x_scale,y=180*screen_y_scale)
+modLabelValue = Text(root,height=box_height,width=box_width*2+12)
+modLabelValue.insert(INSERT,"Add any number of additional successes")
+modLabelValue.bindtags((str(modLabelValue), str(root), "all"))
+modLabelValue.place(x=700*screen_x_scale,y=205*screen_y_scale)
+modInputValue = Entry(root,width=5,validate="key", validatecommand=(validation, '%S'))
+modInputValue.insert(INSERT,"0")
+modInputValue.place(x=700*screen_x_scale,y=225*screen_y_scale)
+
 for i in range(3):#this loop creates the attribute names and feilds
     for j in range(3):
         text_stat_temp = Text(root,height=box_height,width=box_width)#this line and the following create the attribute titles and values
@@ -257,6 +350,7 @@ for i in range(3):#this loop creates the attribute names and feilds
             text="",
             variable=attribute_selected,
             value=str(i)+","+str(j),
+            command = lambda: predict_my_dice(),
         ).place(x=(i*230+35+box_width*9)*screen_x_scale,y=(j*30+50)*screen_y_scale)
 
 for i in range(3):#this loop creates the ability names and feilds
@@ -274,6 +368,7 @@ for i in range(3):#this loop creates the ability names and feilds
             text="",
             variable=ability_selected,
             value=str(i)+","+str(j),
+            command = lambda: predict_my_dice(),
             ).place(x=(i*230+35+box_width*9)*screen_x_scale,y=(j*30+50+120)*screen_y_scale)
 
 for i in range(3):# this loop creates the virtues
@@ -290,6 +385,7 @@ for i in range(3):# this loop creates the virtues
             text="",
             variable=virtue_selected,
             value=str(i),
+            command = lambda: predict_my_dice(),
             ).place(x=(i*230+35+box_width*9)*screen_x_scale,y=(50+440)*screen_y_scale)
 
 for i in range(3):# this loop creates the 10 point values
@@ -310,16 +406,10 @@ for i in range(3):# this loop creates the 10 point values
             text="",
             variable=ten_point_selected,
             value=str(i),
+            command = lambda: predict_my_dice(),
             ).place(x=(i*230+70+box_width*9)*screen_x_scale,y=(80+440)*screen_y_scale)
         
-predictionDCLabel = Text(root,height=box_height,width=int(box_width/2))
-predictionDCLabel.insert(INSERT, "DC = ")
-predictionDCLabel.bindtags((str(text_stat_temp), str(root), "all"))
-predictionDCLabel.place(x=(20)*screen_x_scale,y=(140+440)*screen_y_scale)
-predictionResult = Text(root,height=box_height,width=int(box_width))
-predictionResult.insert(INSERT, "Expected = ")
-predictionResult.bindtags((str(text_stat_temp), str(root), "all"))
-predictionResult.place(x=(20)*screen_x_scale,y=(170+440)*screen_y_scale)
+
 for i in range(10):
     predictFeildText = Text(root,height=box_height,width=2)
     predictFeildText.insert(INSERT,str(i+1))
@@ -330,76 +420,6 @@ for i in range(10):
     predictFeildOutput[i].place(x=(i*50+80)*screen_x_scale,y=(170+440)*screen_y_scale)
 
 
-healthTextBox = Text(root,height=box_height,width=box_width)#this line and the following create the health title and value
-healthTextBox.insert(INSERT,"health")
-healthTextBox.bindtags((str(text_stat_temp), str(root), "all"))
-healthTextBox.place(x=(+20)*screen_x_scale,y=(110+440)*screen_y_scale)
-healthComboBox = Combobox(root,state='readonly',values=health_values_name,height=box_height,width=8)
-healthComboBox.place(x=(35+box_width*6)*screen_x_scale,y=(110+440)*screen_y_scale)
-healthComboBox.bind("<<ComboboxSelected>>", lambda event,i=i: update_value_health(i,event.widget.get()))
-healthComboBox.set(health_values_name[health_value])
-
-results = Label(root, text='Results')#results area
-results.place(x=700*screen_x_scale,y=245*screen_y_scale)
-
-diceOut = Label(root, text='Raw Dice Here')#shows the raw dice value
-diceOut.place(x=700*screen_x_scale,y=265*screen_y_scale)
-
-diceCount = Label(root, text='Total Dice')#shows how many dice were rolled
-diceCount.place(x=700*screen_x_scale,y=290*screen_y_scale)
-
-dcLabel = Text(root,height=box_height,width=box_width)#this allows the user to input the DC of the roll
-dcLabel.insert(INSERT,"Roll DC")
-dcLabel.bindtags((str(text_stat_temp), str(root), "all"))
-dcLabel.place(x=700*screen_x_scale,y=20*screen_y_scale)
-dcComboBox = Combobox(root,state='readonly',values=[0,1,2,3,4,5,6,7,8,9,10],height=box_height,width=1) #this is the dropdown that allows the user to select 0-10
-dcComboBox.place(x=770*screen_x_scale,y=20*screen_y_scale)
-dcComboBox.bind("<<ComboboxSelected>>", lambda event,i=i: update_value_DC(i,event.widget.get()))
-dcComboBox.set(0)
-
-Checkbutton(root, text='mastery', variable=mastery, onvalue=1, offvalue=0).place(x=700*screen_x_scale,y=70*screen_y_scale)#enables the mastery of a roll
-
-rollButton=Button(root, height=1, width=6, text="Roll", command=lambda: roll_my_dice())#clicking this button rolls the dice
-rollButton.place(x=820*screen_x_scale,y=20*screen_y_scale)
-
-clearButton=Button(root, height=1, width=6, text="Clear", command=lambda: clear_values())#clicking this button clears all values
-clearButton.place(x=820*screen_x_scale,y=50*screen_y_scale)
-
-predictButton=Button(root, height=1, width=6, text="Prediction", command=lambda: predict_my_dice())#clicking this button predicts the number of successes
-predictButton.place(x=910*screen_x_scale,y=20*screen_y_scale)
-predictFeild = Label(root, text='Pridiction')#this shows the output of the predict button
-predictFeild.place(x=700*screen_x_scale,y=310*screen_y_scale)
-
-
-#allows the user to select between initive or using the DC and Radiobuttons
-typeLabel = Text(root,height=box_height,width=box_width*2+5)
-typeLabel.insert(INSERT,"Select between preset or input")
-typeLabel.bindtags((str(text_stat_temp), str(root), "all"))
-typeLabel.place(x=700*screen_x_scale,y=110*screen_y_scale)
-typeBox = Combobox(root,state='readonly',values=typeValues,height=box_height,width=5)
-typeBox.place(x=700*screen_x_scale,y=125*screen_y_scale)
-
-def only_numbers(char): # used for the validation of 
-    if char == '-':
-        return True
-    return char.isdigit()
-validation = root.register(only_numbers)
-
-#these allow the user to manualy add or remove dice and succeses, which is used for special modifiers, like weapons or armor or extra actions
-modLabelCount = Text(root,height=box_height,width=box_width*2+12)
-modLabelCount.insert(INSERT,"Add any other dice count modifiers")
-modLabelCount.bindtags((str(text_stat_temp), str(root), "all"))
-modLabelCount.place(x=700*screen_x_scale,y=160*screen_y_scale)
-modInputCount = Entry(root,width=5,validate="key", validatecommand=(validation, '%S'))
-modInputCount.insert(INSERT,"0")
-modInputCount.place(x=700*screen_x_scale,y=180*screen_y_scale)
-modLabelValue = Text(root,height=box_height,width=box_width*2+12)
-modLabelValue.insert(INSERT,"Add any number of additional successes")
-modLabelValue.bindtags((str(text_stat_temp), str(root), "all"))
-modLabelValue.place(x=700*screen_x_scale,y=205*screen_y_scale)
-modInputValue = Entry(root,width=5,validate="key", validatecommand=(validation, '%S'))
-modInputValue.insert(INSERT,"0")
-modInputValue.place(x=700*screen_x_scale,y=225*screen_y_scale)
 
 
 

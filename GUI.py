@@ -14,10 +14,15 @@ ten_point_values_max = [0,0,0]
 health_value = 0
 dc = 0
 mastery = IntVar()
+attribute_enabled = IntVar()
+abilities_enabled = IntVar()
+virtue_enabled = IntVar()
+ten_point_enabled = IntVar()
+
 attribute_selected = StringVar()
 ability_selected = StringVar()
-virtue_selected = StringVar()
-ten_point_selected = StringVar()
+virtue_selected = IntVar()
+ten_point_selected = IntVar()
 
 attribute_names = [["Strength","Dexterity","Stamina"],["Charisma","Manipulation","Appearance"],
                    ["Perception","Intelligence","Wits"]]#this stores the name of each attrubtue to popuplate the UI
@@ -28,13 +33,13 @@ abilities_names = [["Acting","Alertness","Athletics","Brawl","Doge","Empathy","I
 virtue_names = ["Conscience","Self-Control","Courage"]
 ten_point_names = ["Humanity","Willpower","Faith"]
 health_values_name = ["Healthy","Bruised","Hurt","Injured","Wounded","Mauled","Crippled","Incapacitated"]
-typeValues = ["select relevent attributes and abilites","Initiative","include virtue","include 10 point value", "include virtue and 10 point"
-              ,"use attribute and 10 point", "use attribute and virtue","use ability and 10 point", "use ability and virtue", "soak roll","ranged attack (thrown)", "ranged attack (weapon)"
+typeValues = ["select relevent attributes and abilites","Initiative", "soak roll","ranged attack (thrown)", "ranged attack (weapon)"
               ,"unarmed melee","armed melee"]
 predictFeildOutput = [Text(root)]*10
 
 def update_value_DC(n):#updates the value of the DC varible
     global dc
+    predict_my_dice()
     dc = int(n)
 def update_value_attribute(a,b,n):#updates the value of the attibute varible
     attribute_values[a][b] = int(n)#update the approrate array
@@ -109,54 +114,35 @@ def get_num_rolls():
         v1 = 0
         v2 = 0
     elif typeValues.index(typeBox.get()) == 0:#select relevent attributes and abilites
-        v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
-        v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
+        if attribute_enabled.get() == 1:
+            v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
+        if abilities_enabled.get() == 1:
+            v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
+        if virtue_enabled.get() == 1:
+            v3 = virtue_values[int(virtue_selected)]
+        if ten_point_enabled.get() == 1:
+            v4 = ten_point_values[int(ten_point_selected)]
          #get values from combobox and cast to int summing for num dice
     elif typeValues.index(typeBox.get()) == 1:#Initiative
         v1 = attribute_values[0][1]
         v2 = attribute_values[2][2]
-    elif typeValues.index(typeBox.get()) == 2:#include virtue
-        v1 = attribute_values[int(attribute_selected.get().split(",")[0])][int(attribute_selected.get().split(",")[1])]
-        v2 = abilities_values[int(ability_selected.get().split(",")[0])][int(ability_selected.get().split(",")[1])]
-        v3 = int(virtue_selected)
-    elif typeValues.index(typeBox.get()) == 3:#include 10 point value
-        v1 = attribute_values[0][1]
-        v2 = attribute_values[2][2]
-        v4 = int(ten_point_selected)
-    elif typeValues.index(typeBox.get()) == 4:#include virtue and 10 point
-        v1 = attribute_values[0][1]
-        v2 = attribute_values[2][2]
-        v3 = int(virtue_selected.get())
-        v4 = int(ten_point_selected)
-    elif typeValues.index(typeBox.get()) == 5:#use attribute and 10 point
-        v1 = attribute_values[0][1]
-        v4 = int(ten_point_selected.get())
-    elif typeValues.index(typeBox.get()) == 6:#use attribute and virtue
-        v1 = attribute_values[0][1]
-        v3 = int(virtue_selected.get())
-    elif typeValues.index(typeBox.get()) == 7:#use ability and 10 point
-        v4 = int(ten_point_selected.get())
-        v2 = attribute_values[2][2]    
-    elif typeValues.index(typeBox.get()) == 8:#use ability and virtue
-        v3 = int(virtue_selected.get())
-        v2 = attribute_values[2][2]
-    elif typeValues.index(typeBox.get()) == 9:#soak roll
+    elif typeValues.index(typeBox.get()) == 2:#soak roll
         v1 = attribute_values[0][2]
-    elif typeValues.index(typeBox.get()) == 10:#ranged attack thrown dex + athletics
+    elif typeValues.index(typeBox.get()) == 3:#ranged attack thrown dex + athletics
         v1 = attribute_values[0][1]
         v2 = attribute_values[0][2]
-    elif typeValues.index(typeBox.get()) == 11:#ranged attack thrown dex + firearms
+    elif typeValues.index(typeBox.get()) == 4:#ranged attack thrown dex + firearms
         v1 = attribute_values[0][1]
         v2 = attribute_values[2][2]
-    elif typeValues.index(typeBox.get()) == 12:#unarmed melee dex+brawl
+    elif typeValues.index(typeBox.get()) == 5:#unarmed melee dex+brawl
         v1 = attribute_values[0][1]
         v2 = attribute_values[0][3]
-    elif typeValues.index(typeBox.get()) == 13:#armed melee dex+melee
+    elif typeValues.index(typeBox.get()) == 6:#armed melee dex+melee
         v1 = attribute_values[0][1]
         v2 = attribute_values[1][4]
-    if ten_point_selected.get() == '' or int(ten_point_selected.get()) == -1:
+    if ten_point_selected.get() == -1:
         v4 = 0
-    if virtue_selected.get() == '' or int(virtue_selected.get()) == -1:
+    if virtue_selected.get() == -1:
         v3 = 0
     if ability_selected.get() == '' or int(ability_selected.get().split(",")[0]) == -1:
         v2 = 0
@@ -206,7 +192,7 @@ def roll_my_dice():
     else: #non-botch output
         results.configure(text="Successes: "+str(successes))
     diceOut.configure(text="Result: "+str(rawDice)) #output dice log
-    diceCount.configure(text="Total Dice: "+ str(min(rolls,len(rawDice.split(",")))))
+    diceCount.configure(text="Total Dice: "+ str(len(rawDice.split(","))))
 def predict_my_dice():#predict the outcome of a dice roll with the given values
     global dc
     global health_value
@@ -240,8 +226,18 @@ def clear_values():#resets alll values to a default value
     typeBox.set(typeValues[0])
     attribute_selected.set("-1,-1")
     ability_selected.set("-1,-1")
-    ten_point_selected.set("-1")
-    virtue_selected.set("-1")
+    ten_point_selected.set(-1)
+    virtue_selected.set(-1)
+    attribute_enabled.set(1)
+    abilities_enabled.set(1)
+    virtue_enabled.set(0)
+    ten_point_enabled.set(0)
+    predictFeild.configure(text="Expected Successes: ")
+    results.configure(text="Results: ")
+    diceOut.configure(text='Raw Dice Here')
+    diceCount.configure(text='Total Dice')
+    for i in range(len(predictFeildOutput)):
+        predictFeildOutput[i].delete("1.0",END)
 
 
 
@@ -273,7 +269,7 @@ healthComboBox.place(x=(35+box_width*6)*screen_x_scale,y=(110+440)*screen_y_scal
 healthComboBox.bind("<<ComboboxSelected>>", lambda event: update_value_health(event.widget.get()))
 healthComboBox.set(health_values_name[health_value])
 
-results = Label(root, text='Results')#results area
+results = Label(root, text='Results: ')#results area
 results.place(x=700*screen_x_scale,y=245*screen_y_scale)
 
 diceOut = Label(root, text='Raw Dice Here')#shows the raw dice value
@@ -303,6 +299,13 @@ predictButton=Button(root, height=1, width=6, text="Prediction", command=lambda:
 predictButton.place(x=910*screen_x_scale,y=20*screen_y_scale)
 predictFeild = Label(root, text='Pridiction')#this shows the output of the predict button
 predictFeild.place(x=700*screen_x_scale,y=310*screen_y_scale)
+
+#create checkboxes to enable/disable each category
+checkButtonAttribute = Checkbutton(root, text='Enable Attribute', variable=attribute_enabled, onvalue=1, offvalue=0).place(x=200*screen_x_scale,y=20*screen_y_scale)
+checkButtonAbility = Checkbutton(root, text='Enable Ability', variable=abilities_enabled, onvalue=1, offvalue=0).place(x=200*screen_x_scale,y=140*screen_y_scale)
+checkButtonVirtue = Checkbutton(root, text='Enable Virtue', variable=virtue_enabled, onvalue=1, offvalue=0).place(x=125*screen_x_scale,y=470*screen_y_scale)
+checkButtonTenPoint = Checkbutton(root, text='Enable Ten-Point', variable=ten_point_enabled, onvalue=1, offvalue=0).place(x=275*screen_x_scale,y=470*screen_y_scale)
+
 
 
 #allows the user to select between initive or using the DC and Radiobuttons
